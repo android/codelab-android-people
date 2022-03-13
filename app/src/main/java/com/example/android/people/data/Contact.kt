@@ -17,61 +17,69 @@ package com.example.android.people.data
 
 import androidx.core.net.toUri
 
-abstract class Contact(
+
+sealed class Contact(
     val id: Long,
-    val name: String,
     val icon: String
 ) {
+    val name: String = this::class.simpleName!!
+    val iconUri = "content://com.example.android.people/icon/$id".toUri()
+    val shortcutId = "contact_$id"
+    protected val defaultMessage get() = Message(
+        sender = this.id,
+        timestamp =System.currentTimeMillis()
+    )
+    abstract fun reply(text: String): Message
+
+
+    object Cat:Contact(1,"cat.jpg") {
+        override fun reply(text: String): Message
+            = defaultMessage.copy(text = "Meow")
+    }
+
+    object Dog:Contact(2,"dog.jpg") {
+        override fun reply(text: String)
+            = defaultMessage.copy(text = "Woof woof!!")
+    }
+
+    object Parrot:Contact(3,"parrot.jpg") {
+        override fun reply(text: String): Message
+            = defaultMessage.copy(text = text)
+    }
+
+    object Sheep:Contact(4,"sheep.jpg") {
+        override fun reply(text: String): Message
+            = defaultMessage.copy(
+                text = "Look at me!",
+                photoUri = "content://com.example.android.people/photo/sheep_full.jpg".toUri(),
+                photoMimeType = "image/jpeg",
+            )
+    }
 
     companion object {
         val CONTACTS = listOf(
-            object : Contact(1L, "Cat", "cat.jpg") {
-                override fun reply(text: String) = buildReply().apply { this.text = "Meow" }
-            },
-            object : Contact(2L, "Dog", "dog.jpg") {
-                override fun reply(text: String) = buildReply().apply { this.text = "Woof woof!!" }
-            },
-            object : Contact(3L, "Parrot", "parrot.jpg") {
-                override fun reply(text: String) = buildReply().apply { this.text = text }
-            },
-            object : Contact(4L, "Sheep", "sheep.jpg") {
-                override fun reply(text: String) = buildReply().apply {
-                    this.text = "Look at me!"
-                    photo = "content://com.example.android.people/photo/sheep_full.jpg".toUri()
-                    photoMimeType = "image/jpeg"
-                }
-            }
+            Cat,Dog,Parrot,Sheep
         )
     }
 
-    val iconUri = "content://com.example.android.people/icon/$id".toUri()
-
-    val shortcutId = "contact_$id"
-
-    fun buildReply() = Message.Builder().apply {
-        sender = this@Contact.id
-        timestamp = System.currentTimeMillis()
-    }
-
-    abstract fun reply(text: String): Message.Builder
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Contact
+        if (other !is Contact) return false
 
         if (id != other.id) return false
-        if (name != other.name) return false
         if (icon != other.icon) return false
+        if (name != other.name) return false
+        if (iconUri != other.iconUri) return false
+        if (shortcutId != other.shortcutId) return false
 
         return true
     }
-
     override fun hashCode(): Int {
         var result = id.hashCode()
-        result = 31 * result + name.hashCode()
         result = 31 * result + icon.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + iconUri.hashCode()
+        result = 31 * result + shortcutId.hashCode()
         return result
     }
 }

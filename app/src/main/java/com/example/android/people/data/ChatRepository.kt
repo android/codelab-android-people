@@ -16,18 +16,19 @@
 package com.example.android.people.data
 
 import android.content.Context
-import android.net.Uri
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import java.util.concurrent.Executor
-import java.util.concurrent.Executors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 interface ChatRepository {
     fun getContacts(): LiveData<List<Contact>>
     fun findContact(id: Long): LiveData<Contact?>
     fun findMessages(id: Long): LiveData<List<Message>>
-    fun sendMessage(id: Long, text: String, photoUri: Uri?, photoMimeType: String?)
+    fun send(message: Message)
     fun updateNotification(id: Long)
     fun activateChat(id: Long)
     fun deactivateChat(id: Long)
@@ -37,17 +38,17 @@ interface ChatRepository {
 
 class DefaultChatRepository internal constructor(
     private val notificationHelper: NotificationHelper,
-    private val executor: Executor
+    private val scope: CoroutineScope
 ) : ChatRepository {
 
     companion object {
         private var instance: DefaultChatRepository? = null
 
-        fun getInstance(context: Context): DefaultChatRepository {
+        fun getInstance(context: Context,scope:CoroutineScope): DefaultChatRepository {
             return instance ?: synchronized(this) {
                 instance ?: DefaultChatRepository(
                     NotificationHelper(context),
-                    Executors.newFixedThreadPool(4)
+                    scope
                 ).also {
                     instance = it
                 }
@@ -99,21 +100,18 @@ class DefaultChatRepository internal constructor(
         }
     }
 
+
+
     @MainThread
-    override fun sendMessage(id: Long, text: String, photoUri: Uri?, photoMimeType: String?) {
-        val chat = chats.getValue(id)
-        chat.addMessage(Message.Builder().apply {
-            sender = 0L // User
-            this.text = text
-            timestamp = System.currentTimeMillis()
-            this.photo = photoUri
-            this.photoMimeType = photoMimeType
-        })
-        executor.execute {
+    override fun send(message: Message) {
+        val chat = chats.getValue(message.id)
+        chat.addMessage(message)
+
+        scope.launch (Dispatchers.Default){
             // The animal is typing...
-            Thread.sleep(5000L)
+            delay(5000)
             // Receive a reply.
-            chat.addMessage(chat.contact.reply(text))
+            chat.addMessage(chat.contact.reply(message.text))
             // Show notification if the chat is not on the foreground.
             if (chat.contact.id != currentChat) {
                 notificationHelper.showNotification(chat, false)
@@ -139,7 +137,7 @@ class DefaultChatRepository internal constructor(
 
     override fun showAsBubble(id: Long) {
         val chat = chats.getValue(id)
-        executor.execute {
+        scope.launch(Dispatchers.Main) {
             notificationHelper.showNotification(chat, true)
         }
     }

@@ -17,16 +17,20 @@ package com.example.android.people.ui.main
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.viewModelScope
 import com.example.android.people.data.ChatRepository
+import com.example.android.people.data.Contact
 import com.example.android.people.data.DefaultChatRepository
 
 class MainViewModel @JvmOverloads constructor(
     application: Application,
-    repository: ChatRepository = DefaultChatRepository.getInstance(application)
+    repository: ChatRepository?=null
 ) : AndroidViewModel(application) {
 
     /**
      * All the contacts.
      */
-    val contacts = repository.getContacts()
+    val contacts: LiveData<List<Contact>> = (repository?: DefaultChatRepository.getInstance(application,viewModelScope))
+        .getContacts()
 }

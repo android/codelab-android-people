@@ -22,13 +22,21 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
+import androidx.lifecycle.viewModelScope
 import com.example.android.people.data.ChatRepository
 import com.example.android.people.data.DefaultChatRepository
+import com.example.android.people.data.Message
 
-class ChatViewModel @JvmOverloads constructor(
+
+class ChatViewModel constructor(
     application: Application,
-    private val repository: ChatRepository = DefaultChatRepository.getInstance(application)
 ) : AndroidViewModel(application) {
+
+    private val repository: ChatRepository by lazy {
+//        repository ?:
+        DefaultChatRepository.getInstance(application,viewModelScope)
+    }
+
 
     private val chatId = MutableLiveData<Long>()
 
@@ -61,17 +69,17 @@ class ChatViewModel @JvmOverloads constructor(
     /**
      * The contact of this chat.
      */
-    val contact = chatId.switchMap { id -> repository.findContact(id) }
+    val contact = chatId.switchMap { id -> this.repository.findContact(id) }
 
     /**
      * The list of all the messages in this chat.
      */
-    val messages = chatId.switchMap { id -> repository.findMessages(id) }
+    val messages = chatId.switchMap { id -> this.repository.findMessages(id) }
 
     /**
      * Whether the "Show as Bubble" button should be shown.
      */
-    val showAsBubbleVisible = chatId.map { id -> repository.canBubble(id) }
+    val showAsBubbleVisible = chatId.map { id -> this.repository.canBubble(id) }
 
     fun setChatId(id: Long) {
         chatId.value = id
@@ -84,9 +92,16 @@ class ChatViewModel @JvmOverloads constructor(
 
     fun send(text: String) {
         val id = chatId.value
-        if (id != null && id != 0L) {
-            repository.sendMessage(id, text, _photoUri.value, _photoMimeType)
-        }
+
+        if (id != null && id != 0L) repository.send(Message(
+            id = id,
+            sender = 0,
+            text = text,
+            photoUri = _photoUri.value,
+            photoMimeType = _photoMimeType,
+            timestamp = System.currentTimeMillis()
+        ))
+
         _photoUri.value = null
         _photoMimeType = null
     }

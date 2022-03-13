@@ -20,7 +20,6 @@ import android.transition.TransitionInflater
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.android.people.R
 import com.example.android.people.databinding.MainFragmentBinding
@@ -47,9 +46,9 @@ class MainFragment : Fragment(R.layout.main_fragment) {
         val contactAdapter = ContactAdapter { id ->
             navigationController.openChat(id, null)
         }
-        viewModel.contacts.observe(viewLifecycleOwner, Observer { contacts ->
+        viewModel.contacts.observe(viewLifecycleOwner) { contacts ->
             contactAdapter.submitList(contacts)
-        })
+        }
         binding.contacts.run {
             layoutManager = LinearLayoutManager(view.context)
             setHasFixedSize(true)
