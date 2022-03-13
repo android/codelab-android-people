@@ -21,6 +21,9 @@ import android.content.Context
 import android.content.Intent
 import com.example.android.people.data.ChatRepository
 import com.example.android.people.data.DefaultChatRepository
+import com.example.android.people.data.Message
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.Default
 
 /**
  * Handles the "Reply" action in the chat notification.
@@ -32,7 +35,9 @@ class ReplyReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        val repository: ChatRepository = DefaultChatRepository.getInstance(context)
+        val repository: ChatRepository = DefaultChatRepository.getInstance(context,
+            CoroutineScope(Default)
+        )
 
         val results = RemoteInput.getResultsFromIntent(intent) ?: return
         // The message typed in the notification reply.
@@ -41,7 +46,11 @@ class ReplyReceiver : BroadcastReceiver() {
         val chatId = uri.lastPathSegment?.toLong() ?: return
 
         if (chatId > 0 && !input.isNullOrBlank()) {
-            repository.sendMessage(chatId, input.toString(), null, null)
+            repository.send(Message(
+                chatId,
+                sender = 0,
+                text = input.toString()
+            ))
             // We should update the notification so that the user can see that the reply has been
             // sent.
             repository.updateNotification(chatId)

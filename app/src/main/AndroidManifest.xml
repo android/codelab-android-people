@@ -31,6 +31,7 @@
             Our main entry point.
         -->
         <activity
+            android:exported="true"
             android:name="com.example.android.people.MainActivity"
             android:launchMode="singleTop">
             <!--
@@ -86,6 +87,7 @@
                                            multiple instances of this Activity.
         -->
         <activity
+            android:exported="true"
             android:name="com.example.android.people.BubbleActivity"
             android:allowEmbedded="true"
             android:documentLaunchMode="always"
