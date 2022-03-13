@@ -17,6 +17,7 @@ package com.example.android.people.data
 
 typealias ChatThreadListener = (List<Message>) -> Unit
 
+@Suppress("NAME_SHADOWING")
 class Chat(val contact: Contact) {
 
     private val listeners = mutableListOf<ChatThreadListener>()
@@ -36,9 +37,12 @@ class Chat(val contact: Contact) {
         listeners.remove(listener)
     }
 
-    fun addMessage(builder: Message.Builder) {
-        builder.id = _messages.last().id + 1
-        _messages.add(builder.build())
+    fun addMessage(message: Message) {
+        val message = message.copy(id = _messages.last().id+1)
+        require(message.isAvailable) {
+            "message is not available $message"
+        }
+        _messages.add(message)
         listeners.forEach { listener -> listener(_messages) }
     }
 }

@@ -32,7 +32,8 @@
         -->
         <activity
             android:name="com.example.android.people.MainActivity"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:exported="true">
             <!--
                 This activity is the one that's shown on the launcher.
             -->
@@ -77,7 +78,8 @@
 
         <!-- TODO 6: This is our extended Bubble. -->
         <activity
-            android:name="com.example.android.people.BubbleActivity">
+            android:name="com.example.android.people.BubbleActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.BROWSABLE" />

@@ -18,24 +18,16 @@ package com.example.android.people.data
 import android.net.Uri
 
 data class Message(
-    val id: Long,
-    val sender: Long,
-    val text: String,
-    val photoUri: Uri?,
-    val photoMimeType: String?,
-    val timestamp: Long
+    val id: Long = -1,
+    val sender: Long = -1,
+    val text: String = "",
+    val photoUri: Uri? = null,
+    val photoMimeType: String? = null,
+    val timestamp: Long = -1
 ) {
 
     val isIncoming: Boolean
         get() = sender != 0L
-
-    class Builder {
-        var id: Long? = null
-        var sender: Long? = null
-        var text: String? = null
-        var photo: Uri? = null
-        var photoMimeType: String? = null
-        var timestamp: Long? = null
-        fun build() = Message(id!!, sender!!, text!!, photo, photoMimeType, timestamp!!)
-    }
+    val isAvailable
+        get() = id!= -1L && sender !=- 1L && timestamp != -1L
 }
