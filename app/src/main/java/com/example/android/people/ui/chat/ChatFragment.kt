@@ -18,8 +18,10 @@ package com.example.android.people.ui.chat
 import android.content.Intent
 import android.content.LocusId
 import android.graphics.drawable.Icon
+import android.os.Build
 import android.os.Bundle
 import android.transition.TransitionInflater
+import android.view.ContentInfo
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -28,7 +30,6 @@ import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.observe
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.android.people.R
@@ -47,7 +48,12 @@ class ChatFragment : Fragment(R.layout.chat_fragment) {
         private const val ARG_ID = "id"
         private const val ARG_FOREGROUND = "foreground"
         private const val ARG_PREPOPULATE_TEXT = "prepopulate_text"
-
+        val SUPPORTED_MIME_TYPES = arrayOf(
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/gif"
+        )
         fun newInstance(id: Long, foreground: Boolean, prepopulateText: String? = null) =
             ChatFragment().apply {
                 arguments = Bundle().apply {
@@ -74,7 +80,6 @@ class ChatFragment : Fragment(R.layout.chat_fragment) {
             parentFragmentManager.popBackStack()
             return
         }
-        val prepopulateText = arguments?.getString(ARG_PREPOPULATE_TEXT)
         val navigationController = getNavigationController()
 
         viewModel.setChatId(id)
@@ -108,15 +113,23 @@ class ChatFragment : Fragment(R.layout.chat_fragment) {
             messageAdapter.submitList(messages)
             linearLayoutManager.scrollToPosition(messages.size - 1)
         }
-
-        if (prepopulateText != null) {
-            binding.input.setText(prepopulateText)
+        arguments?.getString(ARG_PREPOPULATE_TEXT)?.let {
+            binding.input.setText(it)
         }
-
-        binding.input.setOnImageAddedListener { contentUri, mimeType, label ->
-            viewModel.setPhoto(contentUri, mimeType)
-            if (binding.input.text.isNullOrBlank()) {
-                binding.input.setText(label)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            /**
+             * Sets a listener to be called when a new image is added. This might be coming from copy &
+             * paste or a software keyboard inserting an image.
+             */
+            binding.input.setOnReceiveContentListener(SUPPORTED_MIME_TYPES) { _, contentInfo: ContentInfo ->
+                val mimeType = SUPPORTED_MIME_TYPES.find { contentInfo.clip.description.hasMimeType(it) }
+                if (mimeType != null && contentInfo.clip.itemCount>0) {
+                    viewModel.setPhoto(contentInfo.clip.getItemAt(0).uri, mimeType)
+                    if (binding.input.text.isNullOrBlank()) {
+                        binding.input.setText(contentInfo.clip.description.label.toString())
+                    }
+                }
+                contentInfo
             }
         }
 

@@ -48,14 +48,14 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:contentDescription="@string/description_voice_call"
-            android:tint="?attr/colorAccent"
             app:layout_constraintBottom_toBottomOf="@id/input"
             app:layout_constraintEnd_toStartOf="@id/input"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_voice_call" />
+            app:srcCompat="@drawable/ic_voice_call"
+            app:tint="?attr/colorAccent" />
 
-        <com.example.android.people.ui.chat.ChatEditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/input"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -64,10 +64,12 @@
             android:imeOptions="actionSend"
             android:importantForAutofill="no"
             android:inputType="textCapSentences"
+            android:textColorHint="#546E7A"
             app:layout_constraintBottom_toTopOf="@id/photo"
             app:layout_constraintEnd_toStartOf="@id/send"
             app:layout_constraintStart_toEndOf="@id/voice_call"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="TouchTargetSizeCheck" />
 
         <ImageView
             android:id="@+id/photo"
@@ -87,12 +89,12 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:contentDescription="@string/description_send"
-            android:tint="?attr/colorAccent"
             app:layout_constraintBottom_toBottomOf="@id/input"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/input"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_send" />
+            app:srcCompat="@drawable/ic_send"
+            app:tint="?attr/colorAccent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
